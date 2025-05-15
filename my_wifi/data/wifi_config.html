@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="shortcut icon" href="#"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WiFi Configuration</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+      background-color: #4a76dc;
+      color: white;
+    }
+
+    form {
+      max-width: calc(50% - 10px);
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    input, select, button {
+      width: calc(100% - 20px);
+      margin-bottom: 20px;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    button {
+      cursor: pointer;
+      background-color: #367ce4;
+      color: white;
+      border: none;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #2777d2;
+    }
+
+    #rebootButton {
+      background-color: #f44336;
+    }
+
+    #rebootButton:hover {
+      background-color: #e53935;
+    }
+
+    p#response {
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 10px;
+      background-color: #e7f3fe;
+      border-left: 4px solid #2196F3;
+      color: #31708f;
+      font-size: 14px;
+    }
+
+    .button-container {
+      max-width: calc(40% - 10px);
+      margin: 20px auto;
+    }
+
+    footer {
+    text-align: center;
+    padding: 10px 0;
+    background-color: #4d97e7;
+    color: white;
+    margin-top: 40px;
+  }
+
+  </style>
+</head>
+<body>
+  <h1>http转UART模块-wifi配置窗口</h1>
+  <form id="wifiForm">
+    <h2>STA 配置</h2>
+    <label for="sta_ssid">STA热点名称:</label>
+    <input type="text" id="sta_ssid" name="sta_ssid" placeholder="接入的热点名称，如MyWiFi" required>
+
+    <label for="sta_password">STA热点密码:</label>
+    <input type="password" id="sta_password" name="sta_password" placeholder="接入密码" required>
+
+    <h2>AP 配置</h2>
+    <label for="ap_ssid">AP热点名称:</label>
+    <input type="text" id="ap_ssid" name="ap_ssid" placeholder="模块自身创建的热点名称" required>
+
+    <label for="ap_password">AP热点密码:</label>
+    <input type="password" id="ap_password" name="ap_password" placeholder="模块热点密码" required>
+
+    <label for="mode">WIFI模式:</label>
+    <select id="mode" name="mode">
+      <option value="1">STA (1)</option>
+      <option value="2">AP (2)</option>
+      <option value="3">AP+STA (3)</option>
+    </select>
+
+    <label for="mode">AP的信道:</label>
+    <select id="ap_channel" name="ap_channel">
+      <option value="1">1(推荐)</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6(推荐)</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+      <option value="9">9</option>
+      <option value="10">10</option>
+      <option value="11">11(推荐)</option>
+      <option value="12">12</option>
+      <option value="13">13</option>
+    </select>
+
+    <button type="submit" id="submitButton">Submit</button>
+    <button type="button" id="rebootButton">Reboot</button>
+
+    <p id="response"></p>
+  </form>
+
+  <footer>
+    &copy; 2024 CYK@XMU-RCS17. All Rights Reserved.
+  </footer>
+
+  <script>
+    const wifiForm = document.getElementById('wifiForm');
+    const rebootButton = document.getElementById('rebootButton');
+    const responseParagraph = document.getElementById('response');
+
+    wifiForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const formData = {
+        sta_ssid: document.getElementById('sta_ssid').value,
+        sta_password: document.getElementById('sta_password').value,
+        ap_ssid: document.getElementById('ap_ssid').value,
+        ap_password: document.getElementById('ap_password').value,
+        mode: parseInt(document.getElementById('mode').value, 10),
+        channel: parseInt(document.getElementById('ap_channel').value, 10),  
+      };
+
+      try {
+        const response = await fetch('/wifi_submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+
+        const result = await response.text();
+        responseParagraph.textContent = `Server Response: ${result}`;
+      } catch (error) {
+        responseParagraph.textContent = `Error: ${error.message}`;
+      }
+    });
+
+    rebootButton.addEventListener('click', async () => {
+      try {
+        const response = await fetch('/wifi_reboot', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain',
+          },
+          body: 'Reboot',
+        });
+
+        const result = await response.text();
+        responseParagraph.textContent = `Server Response: ${result}`;
+      } catch (error) {
+        responseParagraph.textContent = `Error: ${error.message}`;
+      }
+    });
+  </script>
+</body>
+</html>

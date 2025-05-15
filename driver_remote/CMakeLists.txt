@@ -1,0 +1,5 @@
+idf_component_register(
+    SRCS "esp32c3flighter.cpp" "esp32center_joystick.cpp" "esp32center.cpp"
+    INCLUDE_DIRS "include"
+    REQUIRES nvs_flash esp_wifi esp_driver_ledc espressif__servo my_espnow my_wifi
+    PRIV_REQUIRES my_adc rdlc)

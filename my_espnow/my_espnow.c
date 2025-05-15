@@ -1,3 +1,14 @@
+/**
+ * @file my_espnow.c
+ * @author CYK-Dot
+ * @brief 在ESP-NOW之上实现基础的CRC校验和接收回调，
+ *        但由于802.11本来就自带CRC，所以本文件用处不大，仅用于代码参考
+ * @version 0.1
+ * @date 2025-05-15
+ * 
+ * @copyright Copyright (c) 2025
+ * 
+ */
 #include <stdlib.h>
 #include <time.h>
 #include <sys/time.h>

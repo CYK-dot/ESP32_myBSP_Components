@@ -1,6 +1,7 @@
 #pragma once
 
 #include <esp_err.h>
+#include "my_wifi.h"
 
 // 外设控制接口
 esp_err_t BoardFlighterCtrl_Init(const char *ssid,const char *pswd,MyProtocolWifi_t WIFI_PTL_80211_xx);

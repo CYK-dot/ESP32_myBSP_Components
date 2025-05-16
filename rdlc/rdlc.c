@@ -2,6 +2,7 @@
  * @file rdlc.c
  * @brief RDLC是一款使用面向对象思想封装的，跨平台、线程安全、带日志支持的字节流协议，改进自HDLC协议
  * @author 陈煜楷
+ * @version 1.1@2025-5-16
  *
  * RDLC是一种基于字节流的协议，含差错控制和字符转义，并采用冗余越界保护，可满足机器人比赛的中高速通信(>=115.2kb/s)需求。
 **/
@@ -333,6 +334,7 @@ static inline int prvTxBufferEstimateSize(uint16_t msgMaxSize,uint16_t msgMaxEsc
     // 0xFF 0xC0 0xFF SRC 0xFF DST 0xFF LENL 0xFF LENH
     // 0xFF CRCL 0xFF CRCH 0xFF 0x0C
     return 10 + msgMaxSize + msgMaxEscapeSize + 6;// 最大转义头 + 数据 + 转义 + 最大转义尾
+    // 此处修改请同步到rdlc.h中的宏
 }
 /**
  *@brief 给定发送缓冲区的长度，获取最大允许的协议参数
@@ -387,7 +389,7 @@ static inline int prvRxFsmEscape(uint8_t *stateEscape,uint8_t byte,bool *isFrame
             }
         break;
     }
-    return RDLC_ERR_NOT_ALLOWED;
+    return RDLC_NOT_FINISH;
 }
 /**
  *@brief  带有冗余越界保护的解析状态机
@@ -516,7 +518,7 @@ Rdlc_t xRdlcCreate(const RdlcConfig_t *config, const RdlcPort_t *port)
     memset(handle, 0, sizeof(RdlcStaticHandle_t));
 
     handle->rxBufSize = prvRxBufferEstimateSize(config->msgMaxSize);
-    handle->rxBuf = port->portMalloc(handle->rxBufSize);
+    handle->rxBuf = (uint8_t *)port->portMalloc(handle->rxBufSize);
     if (!handle->rxBuf) {
         port->portFree(handle);
         return NULL;
@@ -589,6 +591,53 @@ void vRdlcDestroy(Rdlc_t protoHandle)
     if (handle->port.portFree) {
         handle->port.portFree(handle);
     }
+}
+/**
+ * @brief 使用动态的方式创建一个足够大的RDLC帧，可用于后续填充数据
+ * 
+ * @param [IN]  protoHandle RDLC实例
+ * @param [OUT] frame 请传入一个uint8_t*指针的指针，在本函数返回RDLC_OK后，uint8_t*指针将会指向一个长度合规的空间
+ * @param [OUT] size 请传入一个uint16_t数据的指针，在本函数返回RDLC_OK后，uin16_t数据将会等于帧的最大长度
+ * @return 错误码
+ * 
+ * @warn 此函数只对具有port->portMalloc和port->portFree的RDLC实例开放
+ * 
+ * @note 本函数将会返回一个足够大的空间，以供容纳在初始化时指定的最大报文长度。
+ *       如果觉得不应该申请那么多空间，或者有静态分配空间的需求，请手动使用RDLC_GET_FRAME_SIZE宏获取帧长度
+ */
+int xRdlcFrameCreate(Rdlc_t protoHandle,uint8_t **frame,uint16_t *size)
+{
+    RdlcStaticHandle_t *handle = (RdlcStaticHandle_t *)protoHandle;
+    if (!protoHandle || !frame || !size) 
+        return RDLC_ERR_INVALID_ARG;
+    if (!(handle->port.portMalloc) || !(handle->port.portFree))
+        return RDLC_ERR_NOT_ALLOWED;
+    
+    *frame = (uint8_t *)handle->port.portMalloc(prvTxBufferEstimateSize(handle->payloadMaxSize,handle->payloadMaxEscapeSize));
+    if (*frame == NULL) 
+        return RDLC_ERR_NO_MEM;
+    *size = prvTxBufferEstimateSize(handle->payloadMaxSize,handle->payloadMaxEscapeSize);
+    memset(*frame,0,*size);
+    return RDLC_OK;
+}
+/**
+ * @brief 释放动态分配的RDLC帧
+ * 
+ * @param protoHandle RDLC实例
+ * @param frame 帧所在的地址，该帧必须的来源必须是动态分配的
+ * 
+ * @warn 此函数只对具有port->portMalloc和port->portFree的RDLC实例开放
+ * @note 此函数和xRdlcFrameCreate配套
+ */
+void vRdlcFrameDestroy(Rdlc_t protoHandle,uint8_t *frame)
+{
+    RdlcStaticHandle_t *handle = (RdlcStaticHandle_t *)protoHandle;
+    if (!protoHandle || !frame) 
+        return;
+    if (!(handle->port.portMalloc) || !(handle->port.portFree))
+        return;
+
+    handle->port.portFree(frame);
 }
 /**
  * @brief 将一个字节送入RDLC实例中进行解析
@@ -669,7 +718,7 @@ int xRdlcWriteBytes(Rdlc_t protoHandle,RdlcAddr_t addr,
     err = prvTxBufferFeedHead(handle,addr,frameBuf,frameMaxSize,&itr,payloadSize,0x0);
     if (err != RDLC_OK) return err;
 
-    err = prvTxBufferFeedPayload(handle,frameBuf,frameMaxSize,&itr,payload,payloadSize);
+    err = prvTxBufferFeedPayload(handle,frameBuf,frameMaxSize,&itr,(uint8_t*)payload,payloadSize);
     if (err != RDLC_OK) return err;
 
     err = prvTxBufferFeedTail(handle,frameBuf,frameMaxSize,&itr,crc16);
@@ -704,7 +753,7 @@ void vRdlcReset(Rdlc_t protoHandle)
  */
 int xRdlcGetParseState(Rdlc_t protoHandle)
 {
-    if (!protoHandle) return -1;
+    if (!protoHandle) return RDLC_ERR_NOT_ALLOWED;
     RdlcStaticHandle_t *handle = (RdlcStaticHandle_t*)protoHandle;
     return handle->stateParse;
     return 0;
@@ -717,7 +766,7 @@ int xRdlcGetParseState(Rdlc_t protoHandle)
  */
 int xRdlcGetEscapeState(Rdlc_t protoHandle)
 {
-    if (!protoHandle) return -1;
+    if (!protoHandle) return RDLC_ERR_NOT_ALLOWED;
     RdlcStaticHandle_t *handle = (RdlcStaticHandle_t*)protoHandle;
     return handle->stateEscape;
     return 0;

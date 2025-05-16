@@ -8,6 +8,9 @@ typedef struct
 {
     uint16_t rdlcMsgSize;
     uint32_t rdlcBaud;
+    uint8_t  rdlcCallbackMax;
+    uint8_t  uartRxTaskPrio;
+    uint8_t  uartRxTaskFreq;
 }CenterConf_t;
 
 // 外设控制接口
@@ -51,6 +54,5 @@ typedef enum
 
 esp_err_t BoardCenterApp_AdceInit(const CenterConf_t *confCtrl,const CenterAdceConf_t *confApp);
 esp_err_t BoardCenterApp_AdceMain(void);
-
 esp_err_t BoardCenterApp_AdceGetAdc(CenterRecvData_t *data);
 esp_err_t BoardCenterApp_AdceSetLed(CenterLed_t LED_BLINK_x);

@@ -1,3 +1,15 @@
 {
-  "C_Cpp.intelliSenseEngine": "default"
+  "search.exclude": {
+    "**/.git": true,
+    "**/.vscode/**": true,
+    "**/build/**": true,
+    "**/.devcontainer/**": true,
+    "**/sdkconfig":true,
+    "**/sdkconfig.old":true,
+    "**/sdkconfig.defaults":true
+  },
+
+  "C_Cpp.intelliSenseEngine": "default",
+  "idf.adapterTargetName": "esp32",
+  "Codegeex.RepoIndex": true
 }

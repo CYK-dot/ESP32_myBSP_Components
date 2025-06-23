@@ -11,5 +11,16 @@
 
   "C_Cpp.intelliSenseEngine": "default",
   "idf.adapterTargetName": "esp32",
-  "Codegeex.RepoIndex": true
+  "Codegeex.RepoIndex": true,
+  "files.associations": {
+    "easy_wifi.h": "c",
+    "esp_err.h": "c",
+    "esp_wifi.h": "c",
+    "array": "c",
+    "string": "c",
+    "string_view": "c",
+    "ranges": "c",
+    "span": "c",
+    "esp_log.h": "c"
+  }
 }

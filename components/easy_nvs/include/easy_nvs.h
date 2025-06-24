@@ -28,12 +28,15 @@ extern "C" {
 
 /* 导出函数声明 ----------------------------------------------------------------------*/
 
+esp_err_t envs_reset_all(void);
 esp_err_t envs_init(void);
 esp_err_t envs_use(const char *namespace);
 esp_err_t envs_select(const char *key, void *out_value, size_t size);
 esp_err_t envs_update(const char *key, const void *value, size_t size);
 esp_err_t envs_insert(const char *key, const void *value, size_t size);
 esp_err_t envs_delete(const char *key);
+
+void envs_utest(void);
 
 /* C++兼容 --------------------------------------------------------------------------*/
 #ifdef __cplusplus

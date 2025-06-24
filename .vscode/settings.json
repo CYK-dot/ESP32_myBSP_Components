@@ -21,6 +21,15 @@
     "string_view": "c",
     "ranges": "c",
     "span": "c",
-    "esp_log.h": "c"
-  }
+    "esp_log.h": "c",
+    "easy_nvs.h": "c",
+    "string.h": "c",
+    "sstream": "c",
+    "regex": "c",
+    "esp_wifi_types.h": "c",
+    "esp_wifi_types_generic.h": "c",
+    "esp_mac.h": "c"
+  },
+  "idf.portWin": "COM7",
+  "idf.flashType": "UART"
 }

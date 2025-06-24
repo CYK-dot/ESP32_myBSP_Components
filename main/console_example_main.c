@@ -71,7 +71,7 @@ static void initialize_nvs(void)
     ESP_ERROR_CHECK(err);
 }
 
-void app_main(void)
+void t_app_main(void)
 {
     initialize_nvs();
 
@@ -165,4 +165,28 @@ void app_main(void)
 
     ESP_LOGE(TAG, "Error or end-of-input, terminating console");
     esp_console_deinit();
+}
+
+
+#include "easy_nvs.h"
+#include "ewifi_basic.h"
+
+void app_main()
+{
+    ewifi_conf_t conf;
+    ewifi_conf_t conf2;
+    //envs_reset_all();
+    envs_init();
+    ewifi_basic_get_conf_from_default_sta(&conf);
+    ewifi_basic_set_ap_peri_ssid_password(&conf,"esepublic","123456789");
+    ewifi_basic_update_conf_to_nvs(&conf,true);
+
+    ewifi_basic_get_conf_from_nvs(&conf2,false);
+    ewifi_basic_print_conf(&conf2);
+    ewifi_basic_init(&conf2);
+    ewifi_wait_connection(conf2.peri.mode);
+
+    while(1) {
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
 }

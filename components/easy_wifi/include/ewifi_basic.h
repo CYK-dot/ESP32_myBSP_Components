@@ -40,9 +40,15 @@ void ewifi_basic_set_sta_peri_ssid_password(ewifi_conf_t *conf,const char *ssid,
 void ewifi_basic_set_ap_ptl_lr(ewifi_conf_t *conf);
 void ewifi_basic_set_sta_ptl_lr(ewifi_conf_t *conf);
 
+void ewifi_basic_set_ap_phy_fix_rate(ewifi_conf_t *conf,const wifi_tx_rate_config_t *rate);
+void ewifi_basic_set_sta_phy_fix_rate(ewifi_conf_t *conf,const wifi_tx_rate_config_t *rate);
+
 // 配置下发到wifi
 esp_err_t ewifi_basic_init(ewifi_conf_t *conf);
+
+// 连接wifi
 esp_err_t ewifi_wait_connection(wifi_mode_t mode);
+esp_err_t ewifi_basic_re_connect(wifi_mode_t mode);
 
 /* C++兼容 --------------------------------------------------------------------------*/
 #ifdef __cplusplus

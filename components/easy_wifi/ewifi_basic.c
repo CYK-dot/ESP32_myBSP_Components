@@ -74,6 +74,7 @@ void ewifi_basic_print_conf(ewifi_conf_t *conf)
     if (conf->peri.mode == WIFI_MODE_AP)
     {
         ESP_LOGI(TAG,"模式:AP");
+        ESP_LOGI(TAG,"协议:%d,频宽:%d,主频段:%d,是否固定速率:%hhd,速率:%d",conf->ptl.protocol,conf->phy.bandwidth,conf->phy.primary_channel,conf->phy.enable_fixed_tx_rate,conf->phy.fixed_tx_rate.rate);
         ESP_LOGI(TAG,"SSID:%s,PSWD:%s",conf->peri.config.ap.ssid,conf->peri.config.ap.password);
         ESP_LOGI(TAG,"信道:%d,带宽:%d",conf->phy.primary_channel,conf->phy.bandwidth);
         ESP_LOGI(TAG,"最大连接数:%d,隐藏SSID:%d",conf->peri.config.ap.max_connection,conf->peri.config.ap.ssid_hidden);
@@ -115,6 +116,7 @@ esp_err_t ewifi_basic_get_conf_from_default_ap(ewifi_conf_t *conf)
     conf->phy.bandwidth = EASY_WIFI_DEFAULT_BANDWIDTH;
     conf->phy.primary_channel = EASY_WIFI_DEFAULT_AP_CHANNEL_P;
     conf->phy.secondary_channel = EASY_WIFI_DEFAULT_AP_CHANNEL_S;
+    conf->phy.enable_fixed_tx_rate = false;
     // 协议配置
     conf->ptl.protocol = EASY_WIFI_DEFAULT_PTL;
     return ESP_OK;
@@ -154,6 +156,7 @@ esp_err_t ewifi_basic_get_conf_from_default_sta(ewifi_conf_t *conf)
     conf->phy.bandwidth = EASY_WIFI_DEFAULT_BANDWIDTH;
     conf->phy.primary_channel = EASY_WIFI_DEFAULT_AP_CHANNEL_P;
     conf->phy.secondary_channel = EASY_WIFI_DEFAULT_AP_CHANNEL_S;
+    conf->phy.enable_fixed_tx_rate = false;
     // 协议配置
     conf->ptl.protocol = EASY_WIFI_DEFAULT_PTL;
     return ESP_OK;
@@ -277,6 +280,24 @@ void ewifi_basic_set_sta_ptl_lr(ewifi_conf_t *conf)
     conf->ptl.protocol = WIFI_PROTOCOL_LR;
 }
 
+/**
+ * @brief 将wifi的发送配置成固定速率(一对函数)
+ * 
+ * @param conf 
+ * @param rate 
+ * @warning wifi会自适应地调整TX速率，但一旦指定了，就会以指定的速率发送数据
+ */
+void ewifi_basic_set_ap_phy_fix_rate(ewifi_conf_t *conf,const wifi_tx_rate_config_t *rate)
+{
+    conf->phy.enable_fixed_tx_rate = true;
+    memcpy(&(conf->phy.fixed_tx_rate),rate,sizeof(wifi_tx_rate_config_t));
+}
+void ewifi_basic_set_sta_phy_fix_rate(ewifi_conf_t *conf,const wifi_tx_rate_config_t *rate)
+{
+    conf->phy.enable_fixed_tx_rate = true;
+    memcpy(&conf->phy.fixed_tx_rate,rate,sizeof(wifi_tx_rate_config_t));
+}
+
 esp_err_t ewifi_basic_init(ewifi_conf_t *conf)
 {
     ESP_LOGW(TAG,"开始初始化wifi");
@@ -330,12 +351,26 @@ esp_err_t ewifi_basic_init(ewifi_conf_t *conf)
     ESP_ERROR_CHECK(esp_wifi_start());
     // step3: 频段配置 ---------------------------------------------------------------
     ESP_LOGW(TAG,"wifi频段初始化$ 配置wifi频段");
-    if (conf->peri.mode == WIFI_MODE_AP){
-        ESP_ERROR_CHECK(esp_wifi_set_channel(conf->phy.primary_channel, conf->phy.secondary_channel));
-        ESP_ERROR_CHECK(esp_wifi_set_bandwidth(WIFI_IF_AP, conf->phy.bandwidth));
+
+    if (conf->ptl.protocol != WIFI_PROTOCOL_LR) {
+        if (conf->peri.mode == WIFI_MODE_AP){
+            ESP_ERROR_CHECK(esp_wifi_set_channel(conf->phy.primary_channel, conf->phy.secondary_channel));
+            ESP_ERROR_CHECK(esp_wifi_set_bandwidth(WIFI_IF_AP, conf->phy.bandwidth));
+        }
+        else if (conf->peri.mode == WIFI_MODE_STA){
+            ESP_LOGI(TAG,"STA模式不使用频段配置,频段完全取决于AP");
+        }
     }
-    else if (conf->peri.mode == WIFI_MODE_STA){
-        ESP_LOGI(TAG,"STA模式不使用频段配置,频段完全取决于AP");
+    else {
+        ESP_LOGI(TAG,"802.11LR协议,无论AP/STA,均不使用频段配置");
+    }
+    ESP_LOGW(TAG,"wifi频段初始化$ 配置wifi速率");
+    if (conf->phy.enable_fixed_tx_rate){
+        wifi_interface_t ifx = conf->peri.mode == WIFI_MODE_AP ? WIFI_IF_AP : WIFI_IF_STA;
+        esp_wifi_config_80211_tx(ifx, &(conf->phy.fixed_tx_rate));
+    }
+    else{
+        ESP_LOGI(TAG,"不使用固定速率,由wifi自适应调整");
     }
     // step4: 协议配置 ---------------------------------------------------------------
     ESP_LOGW(TAG,"wifi协议初始化$ 配置wifi协议");
@@ -428,6 +463,18 @@ esp_err_t ewifi_wait_connection(wifi_mode_t mode)
     return ESP_ERR_NOT_ALLOWED;
 }
 
+/**
+ * @brief wifi重连
+ * 
+ * @param mode 
+ * @return esp_err_t 
+ * @note ESP32的wifi有容错设计，因此无法立刻得知断连的发生，需要由外界轮询判断，可以调用本函数重连
+ */
+esp_err_t ewifi_basic_re_connect(wifi_mode_t mode)
+{
+    return esp_wifi_connect();
+}
+
 /* 私有函数定义 ---------------------------------------------------------------------*/
 
 static void wifi_event_handler(void *arg, esp_event_base_t event_base,int32_t event_id, void *event_data)
@@ -458,7 +505,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,int32_t ev
     }
     else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
         s_retry_num ++;
-        ESP_LOGE(TAG,"断开与AP的连接");
+        ESP_LOGE(TAG,"断开与AP的连接(后知后觉),重试次数:%d", s_retry_num);
         esp_wifi_connect();
     }
 }

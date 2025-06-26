@@ -86,29 +86,29 @@ esp_err_t envs_init(void)
  * @param namespace 命名空间名称
  * @return ESP_OK 成功，其他值表示失败
  */
-esp_err_t envs_use(const char *namespace)
+esp_err_t envs_use(const char *prv_namespace)
 {
     esp_err_t ret;
-    if (!namespace) {
+    if (!prv_namespace) {
         ESP_LOGE(TAG, "USE命名空间不能为空");
         return ESP_ERR_INVALID_ARG;
     }
     
-    if (strlen(namespace) == 0) {
+    if (strlen(prv_namespace) == 0) {
         ESP_LOGE(TAG, "USE命名空间不能为空字符串");
         return ESP_ERR_INVALID_ARG;
     }
     
-    if (strlen(namespace) > 15) {
-        ESP_LOGE(TAG, "USE命名空间长度不能超过15个字符，当前长度: %d", strlen(namespace));
+    if (strlen(prv_namespace) > 15) {
+        ESP_LOGE(TAG, "USE命名空间长度不能超过15个字符，当前长度: %d", strlen(prv_namespace));
         return ESP_ERR_INVALID_ARG;
     }
     
     // 测试命名空间是否可用
     nvs_handle_t handle;
-    ret = nvs_open(namespace, NVS_READONLY, &handle);
+    ret = nvs_open(prv_namespace, NVS_READONLY, &handle);
     if (ret != ESP_OK && ret != ESP_ERR_NVS_NOT_FOUND) {
-        ESP_LOGE(TAG, "USE无法打开命名空间 '%s': %s", namespace, esp_err_to_name(ret));
+        ESP_LOGE(TAG, "USE无法打开命名空间 '%s': %s", prv_namespace, esp_err_to_name(ret));
         return ret;
     }
     
@@ -117,7 +117,7 @@ esp_err_t envs_use(const char *namespace)
     }
     
     // 保存命名空间
-    strncpy(current_namespace, namespace, sizeof(current_namespace) - 1);
+    strncpy(current_namespace, prv_namespace, sizeof(current_namespace) - 1);
     current_namespace[sizeof(current_namespace) - 1] = '\0';
     
     ESP_LOGI(TAG, "USE设置命名空间为: %s", current_namespace);

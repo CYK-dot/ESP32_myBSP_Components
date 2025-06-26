@@ -100,11 +100,19 @@ typedef struct {
 /**
  * @brief wifi物理层的配置
  * 
+ * @note 速率设置指南
+ * > HT20和HT40是802.11n，HE20是802.11ax
+ * > dcm和ersu是802.11ax特有的功能，只有HE20模式下可以设置为true，功能是抗干扰
+ * > HT20、HT40、HE20下有10*2=20种速率配置，MCx代表调制阶数，越大越容易受干扰，但速率越高
+ * > LGI是长保护，抗干扰强但速率有所损失，SGI则是短保护，抗干扰弱但是速率高
+ * > 因此对于802.11n，HT40+MCS7_SGI能拉满150Mbps，在 @ref wifi_phy_rate_t 里往上拉可以查看相关注释
  */
 typedef struct {
-    wifi_bandwidth_t bandwidth;
-    uint8_t primary_channel;
-    uint8_t secondary_channel;
+    wifi_bandwidth_t   bandwidth;          ///< 频宽
+    uint8_t            primary_channel;    ///< 主频段
+    wifi_second_chan_t secondary_channel;  ///< 副频段(802.11n)
+    bool enable_fixed_tx_rate;             ///< 启用固定的发射速率
+    wifi_tx_rate_config_t fixed_tx_rate;   ///< 固定速率
 }ewifi_conf_phy_t;
 
 /**

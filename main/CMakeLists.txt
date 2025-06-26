@@ -1,2 +1,4 @@
-idf_component_register(SRCS "console_example_main.c" "console_settings.c"
-                    INCLUDE_DIRS ".")
+idf_component_register(
+    SRCS "app_main.cpp" "bsp_center.cpp"
+    INCLUDE_DIRS "./include"
+)

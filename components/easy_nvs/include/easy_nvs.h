@@ -30,7 +30,7 @@ extern "C" {
 
 esp_err_t envs_reset_all(void);
 esp_err_t envs_init(void);
-esp_err_t envs_use(const char *namespace);
+esp_err_t envs_use(const char *prv_namespace);
 esp_err_t envs_select(const char *key, void *out_value, size_t size);
 esp_err_t envs_update(const char *key, const void *value, size_t size);
 esp_err_t envs_insert(const char *key, const void *value, size_t size);

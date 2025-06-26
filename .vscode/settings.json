@@ -10,7 +10,7 @@
   },
 
   "C_Cpp.intelliSenseEngine": "default",
-  "idf.adapterTargetName": "esp32",
+  "idf.adapterTargetName": "esp32c3",
   "Codegeex.RepoIndex": true,
   "files.associations": {
     "easy_wifi.h": "c",
@@ -28,8 +28,40 @@
     "regex": "c",
     "esp_wifi_types.h": "c",
     "esp_wifi_types_generic.h": "c",
-    "esp_mac.h": "c"
+    "esp_mac.h": "c",
+    "ewifi_basic.h": "c",
+    "eespnow_remote.h": "c",
+    "stdint.h": "c",
+    "easy_nowlink.h": "c",
+    "cstdint": "c",
+    "mavlink.h": "c",
+    "mavlink_types.h": "c",
+    "mavlink_conversions.h": "c",
+    "mavlink_msg_heartbeat.h": "c",
+    "mavlink_msg_protocol_version.h": "c",
+    "protocol.h": "c",
+    "enowlink.h": "c",
+    "freertos.h": "c",
+    "esp_comm.h": "c",
+    "mavlink_msg_statustext.h": "c",
+    "mavlink_msg_system_time.h": "c",
+    "mavlink_msg_comm_status_scaled.h": "c",
+    "mavlink_msg_rc_channels_scaled.h": "c",
+    "task.h": "c",
+    "nvs_flash.h": "c",
+    "mavlink_msg_ping.h": "c",
+    "elink_ping.h": "c",
+    "mavlink_helpers.h": "c",
+    "list.h": "c",
+    "clib_list.h": "c",
+    "compare": "c",
+    "condition_variable": "c",
+    "future": "c",
+    "elink_now.h": "c"
   },
-  "idf.portWin": "COM7",
-  "idf.flashType": "UART"
+  "idf.portWin": "COM11",
+  "idf.flashType": "UART",
+  "idf.openOcdConfigs": [
+    "board/esp32c3-builtin.cfg"
+  ]
 }

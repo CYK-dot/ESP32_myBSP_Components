@@ -1,9 +1,9 @@
 /**
- * @file ewifi_advance.h
+ * @file elink_global.h
  * @author CYK-Dot
- * @brief wifi高级功能
+ * @brief 本机的MAVLink协议全局配置
  * @version 0.1
- * @date 2025-06-25
+ * @date 2025-06-26
  *
  * @copyright Copyright (c) 2025
  */
@@ -11,20 +11,16 @@
 
 /* 头文件引入 -----------------------------------------------------------------------*/
 
-#include <stdint.h>
-#include <esp_err.h>
-#include <esp_wifi.h>
-#include <esp_netif_ip_addr.h>
-
-#include "prv_ewifi.h"
-#include "ewifi_basic.h"
-
 /* 配置宏定义 -----------------------------------------------------------------------*/
+
+#define ELINK_MAVLINK_SYS_ID 1
+#define ELINK_MAVLINK_COMP_ID 1
+
+#define ELINK_MAVLINK_CHANNEL_MAX 6
 
 /* 导出宏定义 -----------------------------------------------------------------------*/
 
 /* 导出类型定义 ---------------------------------------------------------------------*/
-
 
 /* C++兼容 --------------------------------------------------------------------------*/
 #ifdef __cplusplus
@@ -32,9 +28,6 @@ extern "C" {
 #endif
 
 /* 导出函数声明 ----------------------------------------------------------------------*/
-
-// 信号质量评估
-esp_err_t ewifi_advance_rssi_sta_getraw(int *rssi);
 
 /* C++兼容 --------------------------------------------------------------------------*/
 #ifdef __cplusplus

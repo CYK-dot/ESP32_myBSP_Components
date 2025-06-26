@@ -29,7 +29,7 @@
 #include "esp_crc.h"
 
 #include "ewifi_basic.h"
-#include "eespnow_remote.h"
+#include "eespnow.h"
 
 /* 私有宏定义 ---------------------------------------------------------------------------------------*/
 #define NOW_REMOTE_EVENT_TX_FINISH (1 << 0)
@@ -75,21 +75,6 @@ esp_err_t NowRemoteProto_Init(const NowRemoteConf_t *conf)
     ESP_ERROR_CHECK( esp_now_register_send_cb(MyNowSend_Callback) );
     ESP_ERROR_CHECK( esp_now_register_recv_cb(MyNowRecv_Callback) );
     ESP_ERROR_CHECK( esp_now_set_pmk((uint8_t *)MY_ESPNOW_REMOTE_PMK) );
-
-    ESP_LOGI(TAG,"设置ESP-NOW所需的收发器");
-    if (conf->phyMode == WIFI_PHY_MODE_LR) {
-        ESP_ERROR_CHECK(esp_wifi_config_espnow_rate(WIFI_IF_STA,WIFI_PHY_RATE_LORA_250K));
-    }
-    else if (conf->phyMode == WIFI_PHY_MODE_HT40) {
-        ESP_ERROR_CHECK(esp_wifi_config_espnow_rate(WIFI_IF_STA,WIFI_PHY_RATE_54M));
-    }
-    else if (conf->phyMode == WIFI_PHY_MODE_HT20) {
-        ESP_ERROR_CHECK(esp_wifi_config_espnow_rate(WIFI_IF_STA,WIFI_PHY_RATE_6M));
-    }
-    else {
-        ESP_LOGE(TAG,"试图使用无效的wifi_phy模式用于配置Now-Remote");
-        return ESP_ERR_NOT_ALLOWED;
-    }
 
     ESP_LOGI(TAG,"初始化ESP-NOW配对");
     esp_now_peer_info_t *peer = (esp_now_peer_info_t*)malloc(sizeof(esp_now_peer_info_t));
@@ -221,12 +206,22 @@ esp_err_t NowRemoteProto_Public(NowRemoteAddr_t addr,NowRemoteMessage_t msg,size
  */
 void NowRemoteProto_ExampleHostInit(void)
 {
-    // // 配置wifi外设
-    // static wifi_config_t ap;
-    // MyWifiSetConfigDefault("ESP32(wifi6)","12345678",strlen("ESP32(wifi6)"),strlen("12345678"),WIFI_MODE_AP,&ap);
-    // MyWifiSetup(&ap,NULL,WIFI_MODE_AP);
-    // // 配置物理层协议
-    // MyWifiSetProtocol(WIFI_IF_AP,WIFI_BW40,WIFI_PTL_80211_LR);
+    // 配置wifi的物理层协议
+    ewifi_conf_t wifi_conf;
+    wifi_tx_rate_config_t tx_rate_conf = {
+        .dcm = true,  //只有802.11ax可以dcm
+        .ersu = true, //只有802.11ax可以ersu
+        .phymode = WIFI_PHY_MODE_LR,
+        .rate = WIFI_PHY_RATE_LORA_250K
+    };
+    ewifi_basic_get_conf_from_default_ap(&wifi_conf);
+    ewifi_basic_set_ap_peri_ssid_password(&wifi_conf,"ESP32_Now_Test","12345678");
+    ewifi_basic_set_ap_ptl_lr(&wifi_conf);
+    ewifi_basic_set_ap_phy_fix_rate(&wifi_conf,&tx_rate_conf);
+    ewifi_basic_print_conf(&wifi_conf);
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+    ewifi_basic_init(&wifi_conf);
     // 配置链路层协议
     NowRemoteConf_t conf = {
         .isHostAP = true,
@@ -236,7 +231,7 @@ void NowRemoteProto_ExampleHostInit(void)
     };
     NowRemoteProto_Init(&conf);
     // 联网
-    // MyWifiWaitConnection(WIFI_MODE_AP);
+    ewifi_wait_connection(WIFI_MODE_AP);
     ESP_LOGW(TAG,"样例代码初始化完成！");
 }
 
@@ -249,7 +244,7 @@ void NowRemoteProto_ExampleHostInit(void)
 void NowRemoteProto_ExampleHostMain(const char *strToSend)
 {
     NowRemoteAddr_t addr = {.dstPort = 0x05,.srcPort = 0x01};
-    NowRemoteMessage_t msg = {.payload = strToSend,.size = strlen(strToSend)+1};
+    NowRemoteMessage_t msg = {.payload = (void*)strToSend,.size = strlen(strToSend)+1};
     NowRemoteProto_Public(addr,msg,portMAX_DELAY);
 }
 
@@ -260,12 +255,20 @@ void NowRemoteProto_ExampleHostMain(const char *strToSend)
  */
 void NowRemoteProto_ExampleSlaveInit(NowRemoteSubscriber_fptr yourCallback)
 {
-    // // 配置wifi外设
-    // static wifi_config_t ap;
-    // MyWifiSetConfigDefault("ESP32(wifi6)","12345678",strlen("ESP32(wifi6)"),strlen("12345678"),WIFI_MODE_STA,&ap);
-    // MyWifiSetup(NULL,&ap,WIFI_MODE_STA);
-    // // 配置物理层协议
-    // MyWifiSetProtocol(WIFI_IF_STA,WIFI_BW40,WIFI_PTL_80211_LR);
+    // 配置wifi的物理层协议
+    ewifi_conf_t wifi_conf;
+    wifi_tx_rate_config_t tx_rate_conf = {
+        .dcm = false,  //只有802.11ax可以dcm
+        .ersu = false, //只有802.11ax可以ersu
+        .phymode = WIFI_PHY_MODE_LR,
+        .rate = WIFI_PHY_RATE_LORA_250K
+    };
+    ewifi_basic_get_conf_from_default_sta(&wifi_conf);
+    ewifi_basic_set_sta_peri_ssid_password(&wifi_conf,"ESP32_Now_Test","12345678");
+    ewifi_basic_set_sta_ptl_lr(&wifi_conf);
+    ewifi_basic_set_sta_phy_fix_rate(&wifi_conf,&tx_rate_conf);
+    ewifi_basic_init(&wifi_conf);
+
     // 配置链路层协议
     NowRemoteConf_t conf = {
         .isHostAP = false,
@@ -276,7 +279,7 @@ void NowRemoteProto_ExampleSlaveInit(NowRemoteSubscriber_fptr yourCallback)
     NowRemoteProto_Init(&conf);
     NowRemoteProto_Subscribe(0x05,yourCallback);
     // 联网
-    // MyWifiWaitConnection(WIFI_MODE_STA);
+    ewifi_wait_connection(WIFI_MODE_STA);
     ESP_LOGW(TAG,"样例代码初始化完成！");
 }
 

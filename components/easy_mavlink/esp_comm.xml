@@ -1,0 +1,321 @@
+<?xml version="1.0"?>
+<mavlink>
+  <version>3</version>
+  <enums>
+    <!-- 飞控类型 -->
+    <enum name="MAV_AUTOPILOT">
+      <description>Micro air vehicle / autopilot classes. This identifies the individual model.</description>
+      <entry value="0" name="MAV_AUTOPILOT_GENERIC">
+        <description>Generic autopilot, full support for everything</description>
+      </entry>
+      <entry value="1" name="MAV_AUTOPILOT_RESERVED">
+        <description>Reserved for future use.</description>
+      </entry>
+    </enum>
+    <!-- 系统类型 -->
+    <enum name="MAV_TYPE">
+      <description>MAVLINK component type reported in HEARTBEAT message. Flight controllers must report the type of the vehicle on which they are mounted (e.g. MAV_TYPE_OCTOROTOR). All other components must report a value appropriate for their type (e.g. a camera must use MAV_TYPE_CAMERA).</description>
+      <entry value="0" name="MAV_TYPE_GENERIC">
+        <description>Generic micro air vehicle</description>
+      </entry>
+      <entry value="1" name="MAV_TYPE_FIXED_WING">
+        <description>Fixed wing aircraft.</description>
+      </entry>
+      <entry value="6" name="MAV_TYPE_GCS">
+        <description>Operator control unit / ground control station</description>
+      </entry>
+      <entry value="18" name="MAV_TYPE_ONBOARD_CONTROLLER">
+        <description>Onboard companion controller</description>
+      </entry>
+      <entry value="30" name="MAV_TYPE_CAMERA">
+        <description>Camera</description>
+      </entry>
+      <entry value="38" name="MAV_TYPE_LOG">
+        <description>Log</description>
+      </entry>
+      <entry value="40" name="MAV_TYPE_IMU">
+        <description>IMU</description>
+      </entry>
+      <entry value="41" name="MAV_TYPE_GPS">
+        <description>GPS</description>
+      </entry>
+    </enum>
+    <!-- 工作模式(主码) -->
+    <enum name="MAV_MODE_FLAG" bitmask="true">
+      <description>These flags encode the MAV mode, see MAV_MODE enum for useful combinations.</description>
+      <entry value="128" name="MAV_MODE_FLAG_SAFETY_ARMED">
+        <description>0b10000000 MAV safety set to armed. Motors are enabled / running / can start. Ready to fly. Additional note: this flag is to be ignore when sent in the command MAV_CMD_DO_SET_MODE and MAV_CMD_COMPONENT_ARM_DISARM shall be used instead. The flag can still be used to report the armed state.</description>
+      </entry>
+      <entry value="64" name="MAV_MODE_FLAG_MANUAL_INPUT_ENABLED">
+        <description>0b01000000 remote control input is enabled.</description>
+      </entry>
+      <entry value="32" name="MAV_MODE_FLAG_HIL_ENABLED">
+        <description>0b00100000 hardware in the loop simulation. All motors / actuators are blocked, but internal software is full operational.</description>
+      </entry>
+      <entry value="16" name="MAV_MODE_FLAG_STABILIZE_ENABLED">
+        <description>0b00010000 system stabilizes electronically its attitude (and optionally position). It needs however further control inputs to move around.</description>
+      </entry>
+      <entry value="8" name="MAV_MODE_FLAG_GUIDED_ENABLED">
+        <description>0b00001000 guided mode enabled, system flies waypoints / mission items.</description>
+      </entry>
+      <entry value="4" name="MAV_MODE_FLAG_AUTO_ENABLED">
+        <description>0b00000100 autonomous mode enabled, system finds its own goal positions. Guided flag can be set or not, depends on the actual implementation.</description>
+      </entry>
+      <entry value="2" name="MAV_MODE_FLAG_TEST_ENABLED">
+        <description>0b00000010 system has a test mode enabled. This flag is intended for temporary system tests and should not be used for stable implementations.</description>
+      </entry>
+      <entry value="1" name="MAV_MODE_FLAG_CUSTOM_MODE_ENABLED">
+        <description>0b00000001 system-specific custom mode is enabled. When using this flag to enable a custom mode all other flags should be ignored.</description>
+      </entry>
+    </enum>
+    <!-- 工作模式(子码) -->
+    <enum name="MAV_MODE_FLAG_DECODE_POSITION" bitmask="true">
+      <description>These values encode the bit positions of the decode position. These values can be used to read the value of a flag bit by combining the base_mode variable with AND with the flag position value. The result will be either 0 or 1, depending on if the flag is set or not.</description>
+      <entry value="128" name="MAV_MODE_FLAG_DECODE_POSITION_SAFETY">
+        <description>First bit:  10000000</description>
+      </entry>
+      <entry value="64" name="MAV_MODE_FLAG_DECODE_POSITION_MANUAL">
+        <description>Second bit: 01000000</description>
+      </entry>
+      <entry value="32" name="MAV_MODE_FLAG_DECODE_POSITION_HIL">
+        <description>Third bit:  00100000</description>
+      </entry>
+      <entry value="16" name="MAV_MODE_FLAG_DECODE_POSITION_STABILIZE">
+        <description>Fourth bit: 00010000</description>
+      </entry>
+      <entry value="8" name="MAV_MODE_FLAG_DECODE_POSITION_GUIDED">
+        <description>Fifth bit:  00001000</description>
+      </entry>
+      <entry value="4" name="MAV_MODE_FLAG_DECODE_POSITION_AUTO">
+        <description>Sixth bit:   00000100</description>
+      </entry>
+      <entry value="2" name="MAV_MODE_FLAG_DECODE_POSITION_TEST">
+        <description>Seventh bit: 00000010</description>
+      </entry>
+      <entry value="1" name="MAV_MODE_FLAG_DECODE_POSITION_CUSTOM_MODE">
+        <description>Eighth bit: 00000001</description>
+      </entry>
+    </enum>
+    <!-- 工作状态 -->
+    <enum name="MAV_STATE">
+      <entry value="0" name="MAV_STATE_UNINIT">
+        <description>Uninitialized system, state is unknown.</description>
+      </entry>
+      <entry value="1" name="MAV_STATE_BOOT">
+        <description>System is booting up.</description>
+      </entry>
+      <entry value="2" name="MAV_STATE_CALIBRATING">
+        <description>System is calibrating and not flight-ready.</description>
+      </entry>
+      <entry value="3" name="MAV_STATE_STANDBY">
+        <description>System is grounded and on standby. It can be launched any time.</description>
+      </entry>
+      <entry value="4" name="MAV_STATE_ACTIVE">
+        <description>System is active and might be already airborne. Motors are engaged.</description>
+      </entry>
+      <entry value="5" name="MAV_STATE_CRITICAL">
+        <description>System is in a non-normal flight mode (failsafe). It can however still navigate.</description>
+      </entry>
+      <entry value="6" name="MAV_STATE_EMERGENCY">
+        <description>System is in a non-normal flight mode (failsafe). It lost control over parts or over the whole airframe. It is in mayday and going down.</description>
+      </entry>
+      <entry value="7" name="MAV_STATE_POWEROFF">
+        <description>System just initialized its power-down sequence, will shut down now.</description>
+      </entry>
+      <entry value="8" name="MAV_STATE_FLIGHT_TERMINATION">
+        <description>System is terminating itself (failsafe or commanded).</description>
+      </entry>
+    </enum>
+    <!-- 组件类型 -->
+    <enum name="MAV_COMPONENT">
+      <description>Legacy component ID values for particular types of hardware/software that might make up a MAVLink system (autopilot, cameras, servos, avoidance systems etc.).
+      
+        Components are not required or expected to use IDs with names that correspond to their type or function, but may choose to do so.
+        Using an ID that matches the type may slightly reduce the chances of component id clashes, as, for historical reasons, it is less likely to be used by some other type of component.
+        System integration will still need to ensure that all components have unique IDs.
+
+        Component IDs are used for addressing messages to a particular component within a system.
+        A component can use any unique ID between 1 and 255 (MAV_COMP_ID_ALL value is the broadcast address, used to send to all components).
+        
+        Historically component ID were also used for identifying the type of component.
+        New code must not use component IDs to infer the component type, but instead check the MAV_TYPE in the HEARTBEAT message!
+      </description>
+      <entry value="0" name="MAV_COMP_ID_ALL">
+        <description>Target id (target_component) used to broadcast messages to all components of the receiving system. Components should attempt to process messages with this component ID and forward to components on any other interfaces. Note: This is not a valid *source* component id for a message.</description>
+      </entry>
+      <entry value="1" name="MAV_COMP_ID_AUTOPILOT1">
+        <description>System flight controller component ("autopilot"). Only one autopilot is expected in a particular system.</description>
+      </entry>
+      <!-- Component ids from 25-99 are reserved for private OEM component definitions (and may be incompatible with other private components). Note that if this range is later reduced, higher ids will be reallocated first. -->
+      <entry value="25" name="MAV_COMP_ID_USER1">
+        <description>Id for a component on privately managed MAVLink network. Can be used for any purpose but may not be published by components outside of the private network.</description>
+      </entry>
+      <entry value="26" name="MAV_COMP_ID_USER2">
+        <description>Id for a component on privately managed MAVLink network. Can be used for any purpose but may not be published by components outside of the private network.</description>
+      </entry>
+      <entry value="27" name="MAV_COMP_ID_USER3">
+        <description>Id for a component on privately managed MAVLink network. Can be used for any purpose but may not be published by components outside of the private network.</description>
+      </entry>
+      <entry value="28" name="MAV_COMP_ID_USER4">
+        <description>Id for a component on privately managed MAVLink network. Can be used for any purpose but may not be published by components outside of the private network.</description>
+      </entry>
+      <entry value="100" name="MAV_COMP_ID_CAMERA">
+        <description>Camera #1.</description>
+      </entry>
+      <entry value="101" name="MAV_COMP_ID_CAMERA2">
+        <description>Camera #2.</description>
+      </entry>
+      <entry value="140" name="MAV_COMP_ID_SERVO1">
+        <description>Servo #1.</description>
+      </entry>
+      <entry value="141" name="MAV_COMP_ID_SERVO2">
+        <description>Servo #2.</description>
+      </entry>
+      <entry value="142" name="MAV_COMP_ID_SERVO3">
+        <description>Servo #3.</description>
+      </entry>
+      <entry value="143" name="MAV_COMP_ID_SERVO4">
+        <description>Servo #4.</description>
+      </entry>
+      <entry value="153" name="MAV_COMP_ID_SERVO14">
+        <description>Servo #14.</description>
+      </entry>
+      <entry value="155" name="MAV_COMP_ID_LOG">
+        <description>Logging component.</description>
+      </entry>
+      <entry value="156" name="MAV_COMP_ID_ADSB">
+        <description>Automatic Dependent Surveillance-Broadcast (ADS-B) component.</description>
+      </entry>
+      <entry value="157" name="MAV_COMP_ID_OSD">
+        <description>On Screen Display (OSD) devices for video links.</description>
+      </entry>
+      <entry value="158" name="MAV_COMP_ID_PERIPHERAL">
+        <description>Generic autopilot peripheral component ID. Meant for devices that do not implement the parameter microservice.</description>
+      </entry>
+      <entry value="180" name="MAV_COMP_ID_BATTERY">
+        <description>Battery #1.</description>
+      </entry>
+      <entry value="191" name="MAV_COMP_ID_ONBOARD_COMPUTER">
+        <description>Component that lives on the onboard computer (companion computer) and has some generic functionalities, such as settings system parameters and monitoring the status of some processes that don't directly speak mavlink and so on.</description>
+      </entry>
+      <entry value="192" name="MAV_COMP_ID_ONBOARD_COMPUTER2">
+        <description>Component that lives on the onboard computer (companion computer) and has some generic functionalities, such as settings system parameters and monitoring the status of some processes that don't directly speak mavlink and so on.</description>
+      </entry>
+      <entry value="193" name="MAV_COMP_ID_ONBOARD_COMPUTER3">
+        <description>Component that lives on the onboard computer (companion computer) and has some generic functionalities, such as settings system parameters and monitoring the status of some processes that don't directly speak mavlink and so on.</description>
+      </entry>
+      <entry value="194" name="MAV_COMP_ID_ONBOARD_COMPUTER4">
+        <description>Component that lives on the onboard computer (companion computer) and has some generic functionalities, such as settings system parameters and monitoring the status of some processes that don't directly speak mavlink and so on.</description>
+      </entry>
+      <entry value="200" name="MAV_COMP_ID_IMU">
+        <description>Inertial Measurement Unit (IMU) #1.</description>
+      </entry>
+      <entry value="201" name="MAV_COMP_ID_IMU_2">
+        <description>Inertial Measurement Unit (IMU) #2.</description>
+      </entry>
+      <entry value="202" name="MAV_COMP_ID_IMU_3">
+        <description>Inertial Measurement Unit (IMU) #3.</description>
+      </entry>
+      <entry value="220" name="MAV_COMP_ID_GPS">
+        <description>GPS #1.</description>
+      </entry>
+      <entry value="221" name="MAV_COMP_ID_GPS2">
+        <description>GPS #2.</description>
+      </entry>
+    </enum>
+  </enums>
+  <messages>
+    <message id="0" name="HEARTBEAT">
+      <description>The heartbeat message shows that a system or component is present and responding. The type and autopilot fields (along with the message component id), allow the receiving system to treat further messages from this system appropriately (e.g. by laying out the user interface based on the autopilot). This microservice is documented at https://mavlink.io/en/services/heartbeat.html</description>
+      <field type="uint8_t" name="type" enum="MAV_TYPE">Vehicle or component type. For a flight controller component the vehicle type (quadrotor, helicopter, etc.). For other components the component type (e.g. camera, gimbal, etc.). This should be used in preference to component id for identifying the component type.</field>
+      <field type="uint8_t" name="autopilot" enum="MAV_AUTOPILOT">Autopilot type / class. Use MAV_AUTOPILOT_INVALID for components that are not flight controllers.</field>
+      <field type="uint8_t" name="base_mode" enum="MAV_MODE_FLAG">System mode bitmap.</field>
+      <field type="uint32_t" name="custom_mode">A bitfield for use for autopilot-specific flags</field>
+      <field type="uint8_t" name="system_status" enum="MAV_STATE">System status flag.</field>
+      <field type="uint8_t_mavlink_version" name="mavlink_version">MAVLink version, not writable by user, gets added by protocol because of magic data type: uint8_t_mavlink_version</field>
+    </message>
+
+    <message id="2" name="SYSTEM_TIME">
+      <description>The system time is the time of the master clock.
+        This can be emitted by flight controllers, onboard computers, or other components in the MAVLink network.
+        Components that are using a less reliable time source, such as a battery-backed real time clock, can choose to match their system clock to that of a SYSTEM_TYPE that indicates a more recent time.
+        This allows more broadly accurate date stamping of logs, and so on.
+        If precise time synchronization is needed then use TIMESYNC instead.</description>
+      <field type="uint64_t" name="time_unix_usec" units="us">Timestamp (UNIX epoch time).</field>
+      <field type="uint32_t" name="time_boot_ms" units="ms">Timestamp (time since system boot).</field>
+    </message>
+
+    <message id="4" name="PING">
+      <deprecated since="2011-08" replaced_by="TIMESYNC">To be removed / merged with TIMESYNC</deprecated>
+      <description>A ping message either requesting or responding to a ping. This allows to measure the system latencies, including serial port, radio modem and UDP connections. The ping microservice is documented at https://mavlink.io/en/services/ping.html</description>
+      <field type="uint64_t" name="time_usec" units="us">Timestamp (UNIX Epoch time or time since system boot). The receiving end can infer timestamp format (since 1.1.1970 or since system boot) by checking for the magnitude of the number.</field>
+      <field type="uint32_t" name="seq">PING sequence</field>
+      <field type="uint8_t" name="target_system">0: request ping from all receiving systems. If greater than 0: message is a ping response and number is the system id of the requesting system</field>
+      <field type="uint8_t" name="target_component">0: request ping from all receiving components. If greater than 0: message is a ping response and number is the component id of the requesting component.</field>
+    </message>
+
+    <message id="34" name="RC_CHANNELS_SCALED">
+      <description>The scaled values of the RC channels received: (-100%) -10000, (0%) 0, (100%) 10000. Channels that are inactive should be set to INT16_MAX.</description>
+      <field type="uint32_t" name="time_boot_ms" units="ms">Timestamp (time since system boot).</field>
+      <field type="uint8_t" name="port">Servo output port (set of 8 outputs = 1 port). Flight stacks running on Pixhawk should use: 0 = MAIN, 1 = AUX.</field>
+      <field type="int16_t" name="chan1_scaled" invalid="INT16_MAX">RC channel 1 value scaled.</field>
+      <field type="int16_t" name="chan2_scaled" invalid="INT16_MAX">RC channel 2 value scaled.</field>
+      <field type="int16_t" name="chan3_scaled" invalid="INT16_MAX">RC channel 3 value scaled.</field>
+      <field type="int16_t" name="chan4_scaled" invalid="INT16_MAX">RC channel 4 value scaled.</field>
+      <field type="int16_t" name="chan5_scaled" invalid="INT16_MAX">RC channel 5 value scaled.</field>
+      <field type="int16_t" name="chan6_scaled" invalid="INT16_MAX">RC channel 6 value scaled.</field>
+      <field type="int16_t" name="chan7_scaled" invalid="INT16_MAX">RC channel 7 value scaled.</field>
+      <field type="int16_t" name="chan8_scaled" invalid="INT16_MAX">RC channel 8 value scaled.</field>
+      <field type="uint8_t" name="rssi" invalid="UINT8_MAX">Receive signal strength indicator in device-dependent units/scale. Values: [0-254], UINT8_MAX: invalid/unknown.</field>
+    </message>
+
+    <message id="253" name="STATUSTEXT">
+      <description>Status text message. These messages are printed in yellow in the COMM console of QGroundControl. WARNING: They consume quite some bandwidth, so use only for important status and error messages. If implemented wisely, these messages are buffered on the MCU and sent only at a limited rate (e.g. 10 Hz).</description>
+      <field type="uint8_t" name="severity" enum="MAV_SEVERITY">Severity of status. Relies on the definitions within RFC-5424.</field>
+      <field type="char[50]" name="text">Status text message, without null termination character</field>
+      <extensions/>
+      <field type="uint16_t" name="id">Unique (opaque) identifier for this statustext message.  May be used to reassemble a logical long-statustext message from a sequence of chunks.  A value of zero indicates this is the only chunk in the sequence and the message can be emitted immediately.</field>
+      <field type="uint8_t" name="chunk_seq">This chunk's sequence number; indexing is from zero.  Any null character in the text field is taken to mean this was the last chunk.</field>
+    </message>
+    
+    <message id="300" name="PROTOCOL_VERSION">
+      <wip/>
+      <!-- This message is work-in-progress and it can therefore change. It should NOT be used in stable production environments. -->
+      <description>Version and capability of protocol version. This message can be requested with MAV_CMD_REQUEST_MESSAGE and is used as part of the handshaking to establish which MAVLink version should be used on the network. Every node should respond to a request for PROTOCOL_VERSION to enable the handshaking. Library implementers should consider adding this into the default decoding state machine to allow the protocol core to respond directly.</description>
+      <field type="uint16_t" name="version">Currently active MAVLink version number * 100: v1.0 is 100, v2.0 is 200, etc.</field>
+      <field type="uint16_t" name="min_version">Minimum MAVLink version supported</field>
+      <field type="uint16_t" name="max_version">Maximum MAVLink version supported (set to the same value as version by default)</field>
+      <field type="uint8_t[8]" name="spec_version_hash">The first 8 bytes (not characters printed in hex!) of the git hash.</field>
+      <field type="uint8_t[8]" name="library_version_hash">The first 8 bytes (not characters printed in hex!) of the git hash.</field>
+    </message>
+    
+    <!-- 私有方言:STAUTS/SENSOR/CTRL四个大类消息 -->
+    <message id="40000" name="COMM_STATUS_SCALED">
+      <description>esp_comm::status data for brief</description>
+      <field type="uint8_t" name="info">led blink times</field>
+      <field type="uint8_t" name="warn">led blink times</field>
+      <field type="uint8_t" name="err">led blink times</field>
+      <field type="uint16_t" name="volt">battery voltage,0~1024</field>
+    </message>
+
+    <message id="50000" name="COMM_SENSOR_ADC">
+      <description>esp_comm::sensor data for adc</description>
+      <filed type="uint8_t" name="pricision_bit">adc pricisions</filed>
+      <field type="uint16_t" name="adc1">adc channel 1</field>
+      <field type="uint16_t" name="adc2">adc channel 2</field>
+      <field type="uint16_t" name="adc3">adc channel 3</field>
+      <field type="uint16_t" name="adc4">adc channel 4</field>
+      <field type="uint16_t" name="adc5">adc channel 5</field>
+      <field type="uint16_t" name="adc6">adc channel 6</field>
+      <field type="uint16_t" name="adc7">adc channel 7</field>
+    </message>
+  </messages>
+
+  <message id="60000" name="COMM_CTRL_MOTOR">
+    <description>esp_comm::control for motor</description>
+    <field type="float" name="motor1">control/feedback data to/from motor1</field>
+    <field type="float" name="motor2">control/feedback data to/from motor2</field>
+    <field type="float" name="motor3">control/feedback data to/from motor3</field>
+    <filed type="float" name="motor4">control/feedback data to/from motor4</filed>
+  </message>
+</mavlink>

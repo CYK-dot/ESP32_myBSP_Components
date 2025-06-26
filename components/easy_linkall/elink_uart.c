@@ -1,15 +1,15 @@
 /**
- * @file ewifi_advance.c
+ * @file elink_uart.c
  * @author CYK-Dot
- * @brief wifi进阶功能
+ * @brief 基于MavLink的通用多信道通信--UART实现
  * @version 0.1
- * @date 2025-06-25
+ * @date 2025-06-26
  *
  * @copyright Copyright (c) 2025
  */
 
 /* 头文件引入 -----------------------------------------------------------------------*/
-#include "ewifi_advance.h"
+#include "elink_uart.h"
 
 /* 私有类型定义 ---------------------------------------------------------------------*/
 
@@ -20,18 +20,5 @@
 /* 私有函数声明 ---------------------------------------------------------------------*/
 
 /* 导出函数定义 ---------------------------------------------------------------------*/
-
-/**
- * @brief 作为STA，获取热点的RSSI
- * 
- * @return esp_err_t 
- * @note 本函数一般用在仅使用TCP/IP的场景，因为ESP-NOW数据帧自带RSSI信息，从回调函数里读就可以
- */
-esp_err_t ewifi_advance_rssi_sta_getraw(int *rssi)
-{
-    esp_err_t err;
-    err = esp_wifi_sta_get_rssi(rssi);
-    return err;
-}
 
 /* 私有函数定义 ---------------------------------------------------------------------*/

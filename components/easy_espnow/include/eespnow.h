@@ -1,35 +1,66 @@
+/**
+ * @file my_espnow_remote.h
+ * @author CYK-Dot
+ * @brief 在ESP-NOW之上实现带端口-订阅-发布机制的无连接协议，称为Now-Remote协议
+ * @version 0.1
+ * @date 2025-05-15
+ * 
+ * @copyright Copyright (c) 2025
+ * 
+ */
 #pragma once
 
 #ifdef __cplusplus
     extern "C" {
 #endif
 
-#include <stddef.h>
 #include <stdint.h>
 #include <time.h>
+#include <esp_err.h>
 
+#define MY_ESPNOW_REMOTE_PMK   "LMK_FILGHT12345" ///< esp-now配对码
+#define MY_ESPNOW_REMOTE_ERR_TX 1 ///< 错误回调码
 
-///< 配置：ESP-NOW协议的配对钥
-#define MY_ESPNOW_PMK          "LMK_FILGHT12345"
-///< 配置：最大允许注册的回调函数长度
-#define MY_ESPNOW_CALLBACK_LEN 3
+typedef struct 
+{
+    uint8_t srcPort;
+    uint8_t dstPort;
+}NowRemoteAddr_t;
 
-typedef struct{
-    uint8_t  *data;  ///< 数据本体
-    suseconds_t tick;///< 时间戳
-    size_t   maxLen; ///< 最大报文长度
-    size_t   msgLen; ///< 本条报文长度
-}MyNowMessage_t;
+typedef struct 
+{
+    void *payload;
+    uint16_t size;
+}NowRemoteMessage_t;
 
-typedef void (*MyNowRxCallback_t) (int rssi,const MyNowMessage_t*);
+typedef struct 
+{
+    suseconds_t tick;
+    uint32_t rssi;
+}NowRemoteCtrl_t;
 
-MyNowMessage_t* MyNowMessageCreate(size_t maxLen);
-void MyNowMessageDelete(MyNowMessage_t* msg);
+typedef struct 
+{
+   bool isHostAP;
+   wifi_phy_mode_t phyMode;  ///< wifi模式,当前支持WIFI_PHY_MODE_LR/WIFI_PHY_MODE_HT20/WIFI_PHY_MODE_HT40/WIFI_PHY_MODE_HE20
+   size_t localPortMaxCount;
+   size_t payloadMaxSize;
+}NowRemoteConf_t;
 
-esp_err_t MyNowSetup(bool isHostAP,wifi_phy_mode_t phyMode,size_t bufferSize);
-esp_err_t MyNowSend(const void* data,size_t len);
-esp_err_t MyNowRecv(MyNowMessage_t* msg);
-esp_err_t MyNowRegisterRecv(MyNowRxCallback_t cb);
+typedef void (*NowRemoteSubscriber_fptr) (NowRemoteMessage_t,NowRemoteAddr_t addr,NowRemoteCtrl_t ctrl);
+typedef void (*NowRemoteErrorCallback_fptr)(uint8_t,uint32_t);
+
+// 驱动程序
+esp_err_t NowRemoteProto_Init(const NowRemoteConf_t *conf);
+esp_err_t NowRemoteProto_RegisterTxFailCallback(NowRemoteErrorCallback_fptr cb);
+esp_err_t NowRemoteProto_Subscribe(uint8_t localPort,NowRemoteSubscriber_fptr cb);
+esp_err_t NowRemoteProto_Public(NowRemoteAddr_t addr,NowRemoteMessage_t msg,size_t tickToWait);
+
+// 样例程序
+void NowRemoteProto_ExampleHostInit(void);
+void NowRemoteProto_ExampleHostMain(const char *strToSend);
+void NowRemoteProto_ExampleSlaveInit(NowRemoteSubscriber_fptr yourCallback);
+void NowRemoteProto_ExampleSlaveMain(void);
 
 #ifdef __cplusplus
     }
